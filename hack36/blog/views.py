@@ -1,8 +1,21 @@
+from django.shortcuts import render
+from django.http import HttpResponse
+
+# Create your views here.
+
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Product, Category, UserProfile, Transaction, ShippingAddress, Order
 from .forms import ProductForm, UserProfileForm, ShippingAddressForm, OrderForm
+
+
+from django.contrib.auth.forms import UserCreationForm
+
+
+from django.contrib.auth.forms import  AuthenticationForm
+from django.contrib.auth import login
+
 
 def index(request):
     categories = Category.objects.all()
@@ -76,6 +89,7 @@ def add_shipping_address(request):
         form = ShippingAddressForm()
     return render(request, 'add_shipping_address.html', {'form': form})
 
+
 @login_required
 def checkout(request):
     if request.method == 'POST':
@@ -101,3 +115,35 @@ def checkout(request):
     products = Product.objects.filter(seller=request.user)
     orders = Order.objects.filter(product__seller=request.user)
     return render(request, 'checkout.html', {'user_profile': user_profile, 'addresses': addresses, 'products': products, 'orders': orders})
+
+
+
+    # views.py
+
+
+
+def register(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')
+    else:
+        form = UserCreationForm()
+    return render(request, 'registration.html', {'form': form})
+
+
+
+
+
+
+def user_login(request):
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('index')  # Replace 'home' with the actual URL name of your home page
+    else:
+        form = AuthenticationForm()
+    return render(request, 'login.html', {'form': form})
